@@ -129,6 +129,11 @@ variable "vm_os_type" {
   default = ""
 }
 
+variable "vm_hw_version" {
+  type = string
+  default = ""
+}
+
 variable "vm_firmware" {
   type = string
   default = "bios"

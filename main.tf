@@ -104,6 +104,7 @@ resource "vcd_vapp_vm" "vm" {
   sizing_policy_id        = data.vcd_vm_sizing_policy.sizing_policy.id
   cpus                    = var.vm_min_cpu
   os_type                 = var.vm_os_type
+  hardware_version        = var.vm_hw_version
   firmware                = var.vm_firmware
 
   boot_options {
