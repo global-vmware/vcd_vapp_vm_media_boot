@@ -75,11 +75,6 @@ variable "boot_iso_name" {
   default     = "pan-bootstrap.iso"
 }
 
-variable "boot_delay" {
-  type = number
-  default = 0
-}
-
 variable "catalog_template_name" {
   type    = string
   default = ""
@@ -130,8 +125,38 @@ variable "vm_min_cpu" {
 }
 
 variable "vm_os_type" {
-  type = string
+  type    = string
   default = ""
+}
+
+variable "vm_firmware" {
+  type = string
+  default = "bios"
+}
+
+variable "vm_boot_delay" {
+  type    = number
+  default = 0
+}
+
+variable "vm_boot_retry_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "vm_boot_retry_delay" {
+  type    = number
+  default = 0
+}
+
+variable "vm_efi_secure_boot" {
+  type    = bool
+  default = false
+}
+
+variable "vm_enter_bios_setup_on_next_boot" {
+  type = bool
+  default = false
 }
 
 variable "vm_count" {

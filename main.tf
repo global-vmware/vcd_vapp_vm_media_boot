@@ -104,9 +104,15 @@ resource "vcd_vapp_vm" "vm" {
   sizing_policy_id        = data.vcd_vm_sizing_policy.sizing_policy.id
   cpus                    = var.vm_min_cpu
   os_type                 = var.vm_os_type
+  firmware                = var.vm_firmware
 
   boot_options {
-    boot_delay  = var.boot_delay
+    boot_delay          = var.vm_boot_delay
+    boot_retry_enabled  = var.vm_boot_retry_enabled
+    boot_retry_delay    = var.vm_boot_retry_delay
+    efi_secure_boot     = var.vm_efi_secure_boot
+    enter_bios_setup_on_next_boot = var.vm_enter_bios_setup_on_next_boot
+
   }
 
   boot_image_id = data.vcd_catalog_media.boot_iso.id
