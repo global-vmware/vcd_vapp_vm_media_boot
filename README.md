@@ -1,4 +1,4 @@
-# Virtual Application Boot from Media VM Terraform Module
+# Virtual Application VM Terraform Module that will boot a Virtual Machine from an ISO Media Source
 
 This Terraform module will deploy Virtual Machines into an existing Virtual Application (vApp) that is in a VMware Cloud Director (VCD) Environment.  This module can be used to provision new Virtual Machines into [Rackspace Technology SDDC Flex](https://www.rackspace.com/cloud/private/software-defined-data-center-flex) VCD Data Center Regions.
 

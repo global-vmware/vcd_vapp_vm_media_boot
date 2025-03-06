@@ -69,10 +69,16 @@ variable "boot_catalog_name" {
   type = string
 }
 
-variable "boot_iso_name" {
+variable "inserted_media_iso_name" {
   type        = string
-  description = "Name of the boot ISO in the catalog"
-  default     = "pan-bootstrap.iso"
+  description = "Name of the ISO in the catalog that will be the inserted boot media"
+  default     = ""
+}
+
+variable "boot_iso_image_name" {
+  type        = string
+  description = "Name of the ISO in the catalog used to derive boot_image_id"
+  default     = ""
 }
 
 variable "catalog_template_name" {
@@ -195,6 +201,20 @@ variable "vm_disks" {
     unit_number = number
   }))
   default     = []
+}
+
+variable "internal_disks" {
+  description = "List of internal disks for each VM"
+  type = list(object({
+    vm_name         = string
+    size_in_mb      = number
+    bus_number      = number
+    unit_number     = number
+    bus_type        = string
+    iops            = number
+    storage_profile = string
+  }))
+  default = []
 }
 
 variable "network_interfaces" {

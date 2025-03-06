@@ -53,12 +53,21 @@ data "vcd_catalog" "boot_catalog" {
 }
 
 data "vcd_catalog_media" "boot_iso" {
+  for_each   = var.inserted_media_iso_name != "" ? { "boot_iso" = var.inserted_media_iso_name } : {}  # Use for_each conditionally
   org        = var.catalog_org_name
   catalog_id = data.vcd_catalog.boot_catalog.id
-  name       = var.boot_iso_name
+  name       = each.value
+}
+
+data "vcd_catalog_media" "boot_image_iso" {
+  count      = var.boot_iso_image_name != "" ? 1 : 0
+  org        = var.catalog_org_name
+  catalog_id = data.vcd_catalog.boot_catalog.id
+  name       = var.boot_iso_image_name
 }
 
 data "vcd_catalog_vapp_template" "template" {
+  count       = length(var.catalog_template_name) > 0 ? 1 : 0
   org         = var.vdc_org_name
   catalog_id  = data.vcd_catalog.catalog.id
   name        = var.catalog_template_name
@@ -78,16 +87,34 @@ data "vcd_vapp_org_network" "vappOrgNet" {
   org_network_name  = each.value.name
 }
 
-resource "vcd_inserted_media" "boot_media" {
-  for_each    = zipmap(var.vm_name, var.vm_name)
+resource "vcd_inserted_media" "media_iso" {
+  for_each    = var.inserted_media_iso_name != "" ? zipmap(var.vm_name, var.vm_name) : {}  # Use for_each conditionally
   org         = var.vdc_org_name
   catalog     = var.boot_catalog_name
-  name        = var.boot_iso_name
+  name        = var.inserted_media_iso_name
   vapp_name   = data.vcd_vapp.vapp.name
   vm_name     = each.value
 
   eject_force = true
-  
+
+  depends_on = [vcd_vapp_vm.vm]
+}
+
+resource "vcd_vm_internal_disk" "internal_disk" {
+  for_each   = { for idx, disk in var.internal_disks : idx => disk }  # Create a disk for each entry in internal_disks
+  org        = var.vdc_org_name
+  vdc        = var.vdc_name
+  vapp_name  = data.vcd_vapp.vapp.name
+  vm_name    = each.value.vm_name
+  size_in_mb = each.value.size_in_mb
+
+  bus_number       = each.value.bus_number
+  unit_number      = each.value.unit_number
+  bus_type         = each.value.bus_type
+  iops             = each.value.iops
+  storage_profile  = each.value.storage_profile
+  allow_vm_reboot  = true  # Ensures disks can be added to powered-on VMs
+
   depends_on = [vcd_vapp_vm.vm]
 }
 
@@ -98,7 +125,7 @@ resource "vcd_vapp_vm" "vm" {
   vapp_name               = data.vcd_vapp.vapp.name
   name                    = var.vm_name_format != "" ? format(var.vm_name_format, var.vm_name[each.key % length(var.vm_name)], each.key + 1) : var.vm_name[each.key % length(var.vm_name)]
   computer_name           = var.computer_name_format != "" ? format(var.computer_name_format, var.computer_name[each.key % length(var.computer_name)], each.key + 1) : var.computer_name[each.key % length(var.computer_name)]
-  vapp_template_id        = data.vcd_catalog_vapp_template.template.id
+  vapp_template_id        = length(var.catalog_template_name) > 0 ? data.vcd_catalog_vapp_template.template[0].id : null
   cpu_hot_add_enabled     = var.vm_cpu_hot_add_enabled
   memory_hot_add_enabled  = var.vm_memory_hot_add_enabled
   sizing_policy_id        = data.vcd_vm_sizing_policy.sizing_policy.id
@@ -116,7 +143,7 @@ resource "vcd_vapp_vm" "vm" {
 
   }
 
-  boot_image_id = data.vcd_catalog_media.boot_iso.id
+  boot_image_id = var.boot_iso_image_name != "" ? data.vcd_catalog_media.boot_image_iso[0].id : null
 
   dynamic "metadata_entry" {
     for_each              = var.vm_metadata_entries
