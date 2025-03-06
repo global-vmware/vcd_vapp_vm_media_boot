@@ -42,34 +42,35 @@ data "vcd_vm_sizing_policy" "sizing_policy" {
   name = var.vm_sizing_policy_name
 }
 
-data "vcd_catalog" "catalog" {
+data "vcd_catalog" "template_catalog" {
   org   = var.catalog_org_name
   name  = var.catalog_name
 }
 
 data "vcd_catalog" "boot_catalog" {
-  org  = var.boot_catalog_org_name
-  name = var.boot_catalog_name
+  for_each = var.boot_catalog_name != "" ? { "boot_catalog" = var.boot_catalog_name } : {}
+  org      = var.boot_catalog_org_name
+  name     = each.value
 }
 
-data "vcd_catalog_media" "boot_iso" {
-  for_each   = var.inserted_media_iso_name != "" ? { "boot_iso" = var.inserted_media_iso_name } : {}  # Use for_each conditionally
+data "vcd_catalog_media" "inserted_media_iso" {
+  for_each   = var.inserted_media_iso_name != "" ? { "inserted_media_iso" = var.inserted_media_iso_name } : {}
   org        = var.catalog_org_name
-  catalog_id = data.vcd_catalog.boot_catalog.id
+  catalog_id = var.boot_catalog_name != "" ? data.vcd_catalog.boot_catalog["boot_catalog"].id : null
   name       = each.value
 }
 
 data "vcd_catalog_media" "boot_image_iso" {
   count      = var.boot_iso_image_name != "" ? 1 : 0
   org        = var.catalog_org_name
-  catalog_id = data.vcd_catalog.boot_catalog.id
+  catalog_id = var.boot_catalog_name != "" ? data.vcd_catalog.boot_catalog["boot_catalog"].id : null
   name       = var.boot_iso_image_name
 }
 
 data "vcd_catalog_vapp_template" "template" {
   count       = length(var.catalog_template_name) > 0 ? 1 : 0
   org         = var.vdc_org_name
-  catalog_id  = data.vcd_catalog.catalog.id
+  catalog_id  = data.vcd_catalog.template_catalog.id
   name        = var.catalog_template_name
 }
 

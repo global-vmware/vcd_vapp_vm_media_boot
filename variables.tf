@@ -63,10 +63,12 @@ variable "catalog_name" {
 
 variable "boot_catalog_org_name" {
   type = string
+  default = ""
 }
 
 variable "boot_catalog_name" {
   type = string
+  default = ""
 }
 
 variable "inserted_media_iso_name" {
