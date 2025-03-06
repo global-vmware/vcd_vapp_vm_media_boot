@@ -77,6 +77,11 @@ variable "inserted_media_iso_name" {
   default     = ""
 }
 
+variable "inserted_media_eject_force" {
+  description = "Allows to pass answer to question in vCD (The guest operating system has locked the CD-ROM door and is probably using the CD-ROM) True means Disconnect anyway (and override the lock)"
+  default = true
+}
+
 variable "boot_iso_image_name" {
   type        = string
   description = "Name of the ISO in the catalog used to derive boot_image_id"
@@ -217,6 +222,11 @@ variable "internal_disks" {
     storage_profile = string
   }))
   default = []
+}
+
+variable "vm_internal_disk_allow_vm_reboot" {
+  description = "Ensures disks can be added to powered-on VMs"
+  default     = true
 }
 
 variable "network_interfaces" {

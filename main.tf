@@ -47,6 +47,13 @@ data "vcd_catalog" "template_catalog" {
   name  = var.catalog_name
 }
 
+data "vcd_catalog_vapp_template" "template" {
+  count       = length(var.catalog_template_name) > 0 ? 1 : 0
+  org         = var.vdc_org_name
+  catalog_id  = data.vcd_catalog.template_catalog.id
+  name        = var.catalog_template_name
+}
+
 data "vcd_catalog" "boot_catalog" {
   for_each = var.boot_catalog_name != "" ? { "boot_catalog" = var.boot_catalog_name } : {}
   org      = var.boot_catalog_org_name
@@ -67,13 +74,6 @@ data "vcd_catalog_media" "boot_image_iso" {
   name       = var.boot_iso_image_name
 }
 
-data "vcd_catalog_vapp_template" "template" {
-  count       = length(var.catalog_template_name) > 0 ? 1 : 0
-  org         = var.vdc_org_name
-  catalog_id  = data.vcd_catalog.template_catalog.id
-  name        = var.catalog_template_name
-}
-
 data "vcd_vapp" "vapp" {
   name = var.vapp_name
   org  = var.vdc_org_name
@@ -89,20 +89,20 @@ data "vcd_vapp_org_network" "vappOrgNet" {
 }
 
 resource "vcd_inserted_media" "media_iso" {
-  for_each    = var.inserted_media_iso_name != "" ? zipmap(var.vm_name, var.vm_name) : {}  # Use for_each conditionally
+  for_each    = var.inserted_media_iso_name != "" ? zipmap(var.vm_name, var.vm_name) : {}
   org         = var.vdc_org_name
   catalog     = var.boot_catalog_name
   name        = var.inserted_media_iso_name
   vapp_name   = data.vcd_vapp.vapp.name
   vm_name     = each.value
 
-  eject_force = true
+  eject_force = var.inserted_media_eject_force
 
   depends_on = [vcd_vapp_vm.vm]
 }
 
 resource "vcd_vm_internal_disk" "internal_disk" {
-  for_each   = { for idx, disk in var.internal_disks : idx => disk }  # Create a disk for each entry in internal_disks
+  for_each   = { for idx, disk in var.internal_disks : idx => disk }
   org        = var.vdc_org_name
   vdc        = var.vdc_name
   vapp_name  = data.vcd_vapp.vapp.name
@@ -114,7 +114,7 @@ resource "vcd_vm_internal_disk" "internal_disk" {
   bus_type         = each.value.bus_type
   iops             = each.value.iops
   storage_profile  = each.value.storage_profile
-  allow_vm_reboot  = true  # Ensures disks can be added to powered-on VMs
+  allow_vm_reboot  = var.vm_internal_disk_allow_vm_reboot
 
   depends_on = [vcd_vapp_vm.vm]
 }
